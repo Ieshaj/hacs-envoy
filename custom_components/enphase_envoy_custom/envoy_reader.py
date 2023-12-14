@@ -462,6 +462,31 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
         except httpx.TransportError:  # pylint: disable=try-except-raise
             raise
 
+    async def _fetch_installer_token_json(self) :
+        """Try to fetch the installer token json from Enlighten API"""
+        async with self.non_local_async_client as client:
+            # login to the enlighten website
+            payload_login = {
+                'user[email]': self.enlighten_user,
+                'user[password]': self.enlighten_pass,
+            }
+            resp = await client.post(ENLIGHTEN_AUTH_URL, data=payload_login, timeout=30)
+            if resp.status_code >= 400:
+                raise RuntimeError(f"Could not Authenticate with Enlighten, status: {resp.status_code}, {resp}")
+
+            # now that we're in a logged in session, we can request the installer token via enlighten
+            login_data = resp.json()
+            payload_token = {
+                "session_id": login_data["session_id"],
+                "username": self.enlighten_user,
+            }
+            resp = await client.post(
+                ENLIGHTEN_TOKEN_URL, json=payload_token, timeout=30
+            )
+            if resp.status_code != 200:
+                raise RuntimeError(f"Could not get installer token, status: {resp.status_code}, {resp}")
+            return resp.text
+
     async def _fetch_owner_token_json(self) :
         """Try to fetch the owner token json from Enlighten API"""
         async with self.non_local_async_client as client:
@@ -489,7 +514,7 @@ class EnvoyReader:  # pylint: disable=too-many-instance-attributes
             return resp.text
 
     async def _getEnphaseToken(self):
-        self._token = await self._fetch_owner_token_json()
+        self._token = await self._fetch_installer_token_json()
         _LOGGER.debug("Obtained Token")
 
         if self._is_enphase_token_expired(self._token):

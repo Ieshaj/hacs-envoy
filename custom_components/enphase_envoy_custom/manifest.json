@@ -1,14 +1,14 @@
 {
   "domain": "enphase_envoy",
   "name": "Enphase Envoy (DEV)",
-  "documentation": "https://github.com/briancmpbll/home_assistant_custom_envoy#readme",
+  "documentation": "https://github.com/Ieshaj/hacs-envoy#readme",
   "requirements": [
     "pyjwt",
     "xmltodict",
     "httpx",
     "envoy_utils"
   ],
-  "codeowners": ["@briancmpbll"],
+  "codeowners": ["@Ieshaj"],
   "config_flow": true,
   "iot_class": "local_polling",
   "version": "0.0.19"
